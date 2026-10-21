@@ -692,7 +692,7 @@
         <button class="pill ${f.type}" data-action="switchtype" aria-label="Ganti jenis transaksi">${f.type === 'in' ? 'Pemasukan' : 'Pengeluaran'}</button></div>
       <div class="form">
         <div class="field"><b>Nominal</b><label class="input">${icon('banknote', 20)}<input id="f-amount" type="text" inputmode="numeric" autocomplete="off" placeholder="Masukkan nominal" value="${f.amount ? Number(f.amount).toLocaleString('id-ID') : ''}"></label></div>
-        <div class="field"><b>Kategori</b><button class="input" data-action="pickcat" type="button">${c ? catIcon(f.cat) : '<span class="ci" style="background:var(--soft);color:var(--muted)">' + icon('utensils', 21) + '</span>'}<span class="v ${c ? 'has' : ''}">${c ? esc(c.label) : 'Pilih kategori'}</span>${icon('chevron-right', 15)}</button></div>
+        <div class="field"><b>Kategori</b><button class="input" data-action="pickcat" type="button">${c ? catIcon(f.cat) : '<span class="ci" style="background:var(--soft);color:var(--muted)">' + icon('wallet', 21) + '</span>'}<span class="v ${c ? 'has' : ''}">${c ? esc(c.label) : 'Pilih kategori'}</span>${icon('chevron-right', 15)}</button></div>
         <div class="field"><b>Tanggal</b><label class="input">${icon('calendar-days', 20)}<span class="v has" id="f-datetxt">${fmtDateLong(f.date)}</span>${icon('chevron-right', 15)}<input id="f-date" type="date" value="${f.date}" max="${today()}" aria-label="Tanggal"></label></div>
         <div class="field"><b>Catatan (opsional)</b><label class="input">${icon('clipboard', 20)}<input id="f-note" type="text" maxlength="80" placeholder="Catat transaksi kamu" value="${esc(f.note)}"></label></div>
       </div>
