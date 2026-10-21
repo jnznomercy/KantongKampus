@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>KantongKampus</title>
+  <meta name="description" content="Catat dan kelola keuangan mahasiswa dengan mudah.">
+  <meta name="theme-color" content="#e9f0ef" id="meta-theme">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="KantongKampus">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Plus+Jakarta+Sans:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <!-- Sidebar: hanya tampil di desktop -->
+    <aside class="sidebar" aria-label="Menu samping">
+      <div class="side-brand"><img src="icons/icon.svg" width="34" height="34" alt=""><span>Kantong<b>Kampus</b></span><button class="side-toggle" data-action="side-toggle" aria-label="Tutup sidebar" aria-expanded="true"><span data-ic="menu"></span></button></div>
+      <button class="side-add" data-action="fab"><span data-ic="plus" data-size="20"></span>Tambah Transaksi</button>
+      <nav class="side-nav" aria-label="Navigasi utama">
+        <button class="side-item" data-nav="home" data-action="nav" data-to="home"><span data-ic="house"></span>Home</button>
+        <button class="side-item" data-nav="keuangan" data-action="nav" data-to="keuangan"><span data-ic="wallet"></span>Keuangan</button>
+        <button class="side-item" data-nav="statistik" data-action="nav" data-to="statistik"><span data-ic="chart-no-axes-column-increasing"></span>Statistik</button>
+        <button class="side-item" data-nav="notifikasi" data-action="nav" data-to="notifikasi"><span data-ic="bell"></span>Notifikasi<i class="side-dot"></i></button>
+        <button class="side-item" data-nav="profil" data-action="nav" data-to="profil"><span data-ic="user-round"></span>Profil</button>
+      </nav>
+    </aside>
+
+    <main id="view" class="view" tabindex="-1"></main>
+    <button class="side-open" data-action="side-toggle" aria-label="Buka sidebar" aria-expanded="false"><span data-ic="menu"></span></button>
+
+    <!-- Navigasi bawah: hanya tampil di mobile -->
+    <nav id="nav" class="bottom-nav" aria-label="Navigasi utama">
+      <button class="nav-item" data-nav="home" data-action="nav" data-to="home"><span class="ni-ic" data-ic="house"></span><span>Home</span></button>
+      <button class="nav-item" data-nav="keuangan" data-action="nav" data-to="keuangan"><span class="ni-ic" data-ic="wallet"></span><span>Keuangan</span></button>
+      <button class="fab" data-action="fab" aria-label="Tambah transaksi"><span data-ic="plus" data-size="24"></span></button>
+      <button class="nav-item" data-nav="statistik" data-action="nav" data-to="statistik"><span class="ni-ic" data-ic="chart-no-axes-column-increasing"></span><span>Statistik</span></button>
+      <button class="nav-item" data-nav="profil" data-action="nav" data-to="profil"><span class="ni-ic" data-ic="user-round"></span><span>Profil</span></button>
+    </nav>
+
+    <div id="splash" class="splash" aria-hidden="true">
+      <img src="icons/icon.svg" width="144" height="144" alt="">
+      <div class="brand">Kantong<span>Kampus</span></div>
+    </div>
+
+    <div id="modal-root"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
