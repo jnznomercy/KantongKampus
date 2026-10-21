@@ -61,7 +61,7 @@
     transport: { label: 'Transportasi', icon: 'bus', bg: '#c8deff', fg: '#3878ed', group: 'transport', type: 'out' },
     shopping: { label: 'Shopping', icon: 'shopping-bag', bg: '#e3cff9', fg: '#9252de', group: 'shopping', type: 'out' },
     pendidikan: { label: 'Pendidikan', icon: 'graduation-cap', bg: '#efedfa', fg: '#8580ad', group: 'pendidikan', type: 'out' },
-    nongkrong: { label: 'Nongkrong', icon: 'coffee', bg: '#ffe1e5', fg: '#ef6571', group: 'lainnya', type: 'out' },
+    nongkrong: { label: 'Nongkrong', icon: 'coffee', bg: '#ffe1e5', fg: '#ef6571', group: 'nongkrong', type: 'out' },
     lainnya: { label: 'Lainnya', icon: 'ellipsis', bg: '#e8f0f0', fg: '#8a9ca6', group: 'lainnya', type: 'out' },
     beasiswa: { label: 'Beasiswa', icon: 'banknote', bg: '#e9f7f2', fg: '#008455', group: 'in', type: 'in' },
     kiriman: { label: 'Kiriman Orang Tua', icon: 'wallet', bg: '#e9f7f2', fg: '#008455', group: 'in', type: 'in' },
@@ -72,6 +72,7 @@
     { id: 'transport', label: 'Transportasi', cat: 'transport', bar: '#3878ed', donut: '#3878ed' },
     { id: 'shopping', label: 'Shopping', cat: 'shopping', bar: '#9252de', donut: '#9252de' },
     { id: 'pendidikan', label: 'Pendidikan', cat: 'pendidikan', bar: '#8580ad', donut: '#af70dc' },
+    { id: 'nongkrong', label: 'Nongkrong', cat: 'nongkrong', bar: '#ef6571', donut: '#ef6571' },
     { id: 'lainnya', label: 'Lainnya', cat: 'lainnya', bar: '#a2b1bd', donut: '#a2b1bd' }
   ];
   const ACCENTS = ['#008455', '#6fcfb5', '#3878ed', '#9252de', '#ffba3e', '#f44788'];
