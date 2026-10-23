@@ -238,7 +238,7 @@ b,strong{font-weight:700}
 .field{display:flex;flex-direction:column;gap:10px}
 .field > b{font-size:calc(14px * var(--fs))}
 .input{position:relative;display:flex;align-items:center;gap:12px;height:58px;padding:0 15px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--muted);width:100%}
-.input input[type=text],.input input[type=number]{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:calc(14px * var(--fs));color:var(--text);height:100%}
+.input input[type=text],.input input[type=number],.input input[type=email],.input input[type=password]{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:calc(14px * var(--fs));color:var(--text);height:100%}
 .input input::placeholder{color:var(--muted)}
 .input:focus-within{border-color:var(--accent)}
 .input .v{flex:1;min-width:0;font-size:calc(14px * var(--fs));color:var(--muted)}
@@ -565,6 +565,16 @@ b,strong{font-weight:700}
 .langlist button b{flex:1;font-size:calc(14px * var(--fs))}
 .langlist button.sel{box-shadow:0 0 0 2px var(--accent)}
 .langlist .lchk{color:var(--accent);display:grid;width:20px}
+
+/* akun & sinkronisasi */
+.autherr{min-height:18px;font-size:calc(12px * var(--fs));color:var(--red);text-align:center;line-height:1.4}
+.autherr.ok{color:var(--accent)}
+.acc-id{display:flex;align-items:center;gap:12px;background:var(--soft);border-radius:14px;padding:12px}
+.acc-id > div{min-width:0}
+.acc-id b{display:block;font-size:calc(14px * var(--fs));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acc-id small{display:block;font-size:calc(12px * var(--fs));color:var(--muted)}
+.mcard .tabs{max-width:none}
+.linkbtn{align-self:flex-end;margin:-6px 0 -6px;padding:2px 0;color:var(--accent);font-size:calc(12px * var(--fs));font-weight:700;background:none}
 
 /* Splash disembunyikan di desktop */
 @media (min-width:900px){ .splash{display:none} }
