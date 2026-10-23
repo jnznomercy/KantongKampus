@@ -13,6 +13,8 @@
     'wallet': '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
     'plus': '<path d="M5 12h14"/><path d="M12 5v14"/>',
     'chart-no-axes-column-increasing': '<line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/>',
+    'mail': '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+    'lock': '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
     'user-round': '<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>',
     'bell': '<path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/>',
     'eye': '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>',
@@ -42,6 +44,7 @@
     'image': '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
     'info': '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
     'languages': '<path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>',
+    'cloud': '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>',
     'cloud-upload': '<path d="M12 13v8"/><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m8 17 4-4 4 4"/>',
     'trash-2': '<path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
     'circle-check': '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
@@ -187,8 +190,13 @@
     state.tx = [];
     save();
   }
-  function save() {
+  function persist() {
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* penyimpanan penuh / diblokir */ }
+  }
+  function save() {
+    state.updatedAt = Date.now();
+    persist();
+    scheduleSync();
   }
 
   /* =====================================================================
@@ -591,7 +599,7 @@
         <section class="pg-acc"><h2 class="grp-t">Akun</h2><div class="card pad12 grp">${setRow('user-round', 'Ubah Nama', '', 'edit-name')}</div></section>
         <section><h2 class="grp-t">Keuangan</h2><div class="card pad12 grp">${setRow('banknote', 'Mata Uang', 'Rupiah (Rp)', 'currency', '', '', 'Mata uang yang dipakai di seluruh aplikasi')}${setRow('bell', 'Pengaturan Notifikasi', '', 'nav', 'data-to="notifpref"', '', 'Pilih jenis notifikasi yang ingin kamu terima')}</div></section>
         <section><h2 class="grp-t">Aplikasi</h2><div class="card pad12 grp">${setRow('palette', 'Tema', themeName(), 'nav', 'data-to="tema"', '', 'Terang, gelap, atau ikuti sistem')}${setRow('languages', 'Bahasa', langName(), 'language', '', '', 'Bahasa tampilan aplikasi')}</div></section>
-        <section><h2 class="grp-t">Data</h2><div class="card pad12 grp">${setRow('cloud-upload', 'Backup Data', '', 'backup', '', '', 'Simpan salinan datamu ke perangkat')}${setRow('trash-2', 'Hapus Semua Data', '', 'wipe', '', 'danger', 'Hapus semua transaksi dan kembalikan pengaturan awal')}</div></section>
+        <section><h2 class="grp-t">Data</h2><div class="card pad12 grp">${setRow('cloud', 'Akun & Sinkronisasi', session ? 'Terhubung' : 'Belum masuk', 'account', '', '', session ? esc(session.user.email) : 'Masuk agar data bisa dipakai di perangkat lain')}${setRow('cloud-upload', 'Backup Data', '', 'backup', '', '', 'Simpan salinan datamu ke perangkat')}${setRow('trash-2', 'Hapus Semua Data', '', 'wipe', '', 'danger', 'Hapus semua transaksi dan kembalikan pengaturan awal')}</div></section>
         <section><h2 class="grp-t">Tentang</h2><div class="card pad12 grp">${setRow('info', 'Tentang Aplikasi', 'Versi 1.0.0', 'about', '', '', 'Informasi tentang KantongKampus')}${isStandalone() ? '' : setRow('smartphone', 'Pasang Aplikasi', '', 'install', '', '', 'Tambahkan ke layar utama perangkatmu')}</div></section>
       </div>
     </div>`;
@@ -778,7 +786,11 @@
     }
     $$('[data-ic]').forEach((el) => { if (!el.firstChild) el.innerHTML = icon(el.dataset.ic, Number(el.dataset.size) || 20); });
   }
-  window.addEventListener('hashchange', () => { closeModal(); render(); });
+  window.addEventListener('hashchange', () => {
+    const a = takeAuthHash();
+    if (a) { handleAuthHash(a); return; }
+    closeModal(); render();
+  });
 
   const go = (to) => { location.hash = '#/' + to; };
 
@@ -791,12 +803,12 @@
     const f = $('input', modalRoot);
     if (f) setTimeout(() => f.focus(), 50);
   }
-  function closeModal() { if (modalCtx && modalCtx.welcome) return; stopCam(); modalRoot.innerHTML = ''; modalCtx = null; }
+  function closeModal() { if (modalCtx && (modalCtx.welcome || modalCtx.lock)) return; stopCam(); modalRoot.innerHTML = ''; modalCtx = null; }
   function welcomeModal() {
     modalCtx = { welcome: true };
     modalRoot.innerHTML = `<div class="scrim"></div><div class="mwrap" role="dialog" aria-modal="true"><form class="mcard" id="wf"><h2>Selamat datang!</h2><p>Siapa namamu? Nama ini akan tampil di halaman utama.</p>
       <label class="input"><input id="wv" type="text" maxlength="24" autocomplete="off" placeholder="Masukkan namamu"></label>
-      <button type="submit" class="primary">Mulai</button></form></div>`;
+      <button type="submit" class="primary">Mulai</button><button type="button" class="ghost" data-action="welcome-login">Sudah punya akun? Masuk</button></form></div>`;
     setTimeout(() => { const f = $('#wv'); if (f) f.focus(); }, 50);
     $('#wf').addEventListener('submit', (e) => {
       e.preventDefault();
@@ -946,6 +958,29 @@
     'Pasang KantongKampus': 'Install KantongKampus', 'Buka dari layar utama dan tetap bisa dipakai tanpa internet.': 'Open from your home screen and use it without internet.',
     'Selamat datang!': 'Welcome!', 'Siapa namamu? Nama ini akan tampil di halaman utama.': 'What\u2019s your name? It will be shown on the home screen.', 'Masukkan namamu': 'Enter your name', 'Mulai': 'Start',
     'Halo!': 'Hello!',
+    'Akun & Sinkronisasi': 'Account & Sync', 'Belum masuk': 'Not signed in', 'Terhubung': 'Connected', 'Masuk': 'Sign In', 'Daftar': 'Sign Up', 'Buat Akun': 'Create Account', 'Keluar': 'Sign Out',
+    'Sinkronkan Sekarang': 'Sync Now', 'Email': 'Email', 'Kata sandi': 'Password', 'Memproses...': 'Processing...',
+    'Daftar agar datamu tersimpan di akun dan bisa dipakai di perangkat lain.': 'Sign up to keep your data in your account and use it on other devices.',
+    'Masuk untuk menyinkronkan datamu.': 'Sign in to sync your data.', 'Masuk agar data bisa dipakai di perangkat lain': 'Sign in to use your data on other devices',
+    'Datamu tersimpan di akun ini dan otomatis tersinkron ke perangkat lain yang masuk dengan akun yang sama.': 'Your data is saved to this account and syncs automatically to other devices signed in with the same account.',
+    'Menyinkronkan...': 'Syncing...', 'Tersinkron': 'Synced', 'Menunggu koneksi': 'Waiting for connection', 'Gagal menyinkronkan': 'Sync failed', 'Menunggu sinkronisasi': 'Waiting to sync',
+    'Format email belum benar': 'Invalid email format', 'Kata sandi minimal 6 karakter': 'Password must be at least 6 characters', 'Email atau kata sandi salah': 'Incorrect email or password',
+    'Email sudah terdaftar, silakan masuk': 'Email already registered, please sign in', 'Kata sandi terlalu lemah': 'Password is too weak', 'Email belum diverifikasi. Cek kotak masukmu.': 'Email not verified. Check your inbox.',
+    'Terlalu banyak percobaan, coba lagi nanti': 'Too many attempts, try again later', 'Tidak ada koneksi internet': 'No internet connection', 'Terjadi kesalahan, coba lagi': 'Something went wrong, try again',
+    'Cek email kamu untuk verifikasi, lalu masuk.': 'Check your email to verify, then sign in.',
+    'Berhasil masuk': 'Signed in', 'Berhasil keluar': 'Signed out', 'Data akun dimuat': 'Account data loaded', 'Data tersimpan di akun': 'Data saved to your account',
+    'Sesi berakhir, silakan masuk lagi': 'Session expired, please sign in again', 'Sinkronisasi selesai': 'Sync complete',
+    'Data sudah ada di akun': 'Data already in account', 'Akun ini sudah punya data. Pilih data yang mau dipakai.': 'This account already has data. Choose which data to use.',
+    'Data yang tidak dipilih akan diganti.': 'The data you don\u2019t choose will be replaced.', 'Pakai data akun': 'Use account data', 'Pakai data perangkat ini': 'Use this device\u2019s data',
+    'Sudah punya akun? Masuk': 'Already have an account? Sign in',
+    'Semua transaksi dan pengaturan akan dihapus permanen dari perangkat ini dan dari akunmu.': 'All transactions and settings will be permanently deleted from this device and from your account.',
+    'Lupa kata sandi?': 'Forgot password?', 'Lupa Kata Sandi': 'Forgot Password', 'Kirim Link Reset': 'Send Reset Link',
+    'Masukkan emailmu. Kami akan mengirim link untuk membuat kata sandi baru.': 'Enter your email. We\u2019ll send a link to create a new password.',
+    'Link reset sudah dikirim. Cek kotak masuk dan folder spam.': 'Reset link sent. Check your inbox and spam folder.',
+    'Buat Kata Sandi Baru': 'Create New Password', 'Masukkan kata sandi baru untuk akunmu.': 'Enter a new password for your account.',
+    'Kata sandi baru': 'New password', 'Ulangi kata sandi baru': 'Repeat new password', 'Simpan Kata Sandi': 'Save Password',
+    'Kata sandi tidak sama': 'Passwords do not match', 'Kata sandi diperbarui': 'Password updated', 'Link sudah kedaluwarsa, silakan minta lagi': 'Link expired, please request a new one',
+    'Kata sandi baru harus berbeda dari yang lama': 'New password must be different from the old one',
     'Pasang': 'Install', 'Tutup': 'Close', 'Mengerti': 'Got it', 'Batal': 'Cancel', 'Simpan': 'Save', 'Hapus': 'Delete', 'Ambil': 'Capture',
     'Ubah Foto Profil': 'Change Profile Photo', 'Pilih Avatar': 'Choose Avatar', 'Ambil Foto': 'Take Photo', 'Pilih dari Album': 'Choose from Album', 'Hapus Foto': 'Remove Photo',
     'Avatar diperbarui': 'Avatar updated', 'Foto profil diperbarui': 'Profile photo updated', 'Foto dihapus': 'Photo removed',
@@ -1078,6 +1113,255 @@
   }
 
   /* =====================================================================
+     Akun & sinkronisasi (Supabase) — data tetap disimpan lokal dulu
+     ===================================================================== */
+  const SB_URL = 'https://olzchxfmbmgfpgrzvqdd.supabase.co';
+  const SB_KEY = 'sb_publishable_jR4sBFjO5n8_4h5NbBxsWg_Ku3LzmW-';
+  const AUTH_KEY = 'kk:auth';
+  let session = null, syncState = 'idle', syncBusy = false, syncTimer = null, lastPull = 0, authMode = 'login', authEmail = '';
+  try { session = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'); } catch (e) { session = null; }
+  const saveSession = () => { try { if (session) localStorage.setItem(AUTH_KEY, JSON.stringify(session)); else localStorage.removeItem(AUTH_KEY); } catch (e) { /* abaikan */ } };
+  const isDirty = () => (state.updatedAt || 0) > (state.syncedAt || 0);
+  const snapshot = () => { const s = JSON.parse(JSON.stringify(state)); delete s.syncedAt; return s; };
+  const mergeState = (s) => {
+    const d = defaults();
+    const st = Object.assign(d, s, { settings: Object.assign(d.settings, s.settings || {}, { notif: Object.assign(d.settings.notif, (s.settings || {}).notif || {}) }) });
+    if (s.named === undefined || st.name) st.named = true;
+    return st;
+  };
+  async function sb(path, opt = {}) {
+    const headers = Object.assign({ apikey: SB_KEY, 'Content-Type': 'application/json' }, opt.token ? { Authorization: 'Bearer ' + opt.token } : {}, opt.headers || {});
+    const res = await fetch(SB_URL + path, { method: opt.method || 'GET', headers, body: opt.body ? JSON.stringify(opt.body) : undefined });
+    let json = null;
+    try { json = await res.json(); } catch (e) { /* kosong */ }
+    if (!res.ok) {
+      const err = new Error((json && (json.msg || json.message || json.error_description || json.error)) || ('HTTP ' + res.status));
+      err.status = res.status; err.code = json && (json.error_code || json.code);
+      throw err;
+    }
+    return json;
+  }
+  function setSession(r) {
+    session = { access_token: r.access_token, refresh_token: r.refresh_token, expires_at: r.expires_at || (Math.floor(Date.now() / 1000) + (r.expires_in || 3600)), user: { id: r.user.id, email: r.user.email } };
+    saveSession();
+  }
+  async function ensureToken() {
+    if (!session) throw Object.assign(new Error('no session'), { authFail: true });
+    if (session.expires_at - Math.floor(Date.now() / 1000) > 60) return session.access_token;
+    try {
+      const r = await sb('/auth/v1/token?grant_type=refresh_token', { method: 'POST', body: { refresh_token: session.refresh_token } });
+      setSession(r);
+      return session.access_token;
+    } catch (e) {
+      if (e.status >= 400 && e.status < 500) e.authFail = true;
+      throw e;
+    }
+  }
+  async function pull() {
+    const t = await ensureToken();
+    const r = await sb(`/rest/v1/user_data?select=data,updated_at&user_id=eq.${session.user.id}`, { token: t });
+    return (r && r[0]) || null;
+  }
+  async function push(snap) {
+    const t = await ensureToken();
+    await sb('/rest/v1/user_data?on_conflict=user_id', { method: 'POST', token: t, headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: { user_id: session.user.id, data: snap, updated_at: new Date().toISOString() } });
+  }
+  const syncText = () => {
+    if (!session) return 'Belum masuk';
+    if (syncState === 'syncing') return 'Menyinkronkan...';
+    if (syncState === 'offline') return 'Menunggu koneksi';
+    if (syncState === 'error') return 'Gagal menyinkronkan';
+    return isDirty() ? 'Menunggu sinkronisasi' : 'Tersinkron';
+  };
+  function setSync(s) { syncState = s; $$('[data-sync]').forEach((el) => { el.textContent = syncText(); }); }
+  function onSyncError(e) {
+    if (e && e.authFail) { session = null; saveSession(); setSync('idle'); toast('Sesi berakhir, silakan masuk lagi'); render(true); return; }
+    setSync(e instanceof TypeError || !navigator.onLine ? 'offline' : 'error');
+  }
+  function applyRemote(data) {
+    state = mergeState(data);
+    state.syncedAt = state.updatedAt || 0;
+    persist();
+    lang = state.settings.lang === 'en' ? 'en' : 'id';
+    ui.open = null; ui.q = ''; ui.flt = 'all'; ui.form = null; ui.statMonth = curMonth();
+    applyTheme(); applyLang(); render();
+  }
+  function scheduleSync() {
+    if (!session) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(flush, 1500);
+    setSync(syncState === 'syncing' ? 'syncing' : 'idle');
+  }
+  async function flush() {
+    if (!session || syncBusy || !isDirty()) return;
+    if (!navigator.onLine) { setSync('offline'); return; }
+    syncBusy = true; setSync('syncing');
+    const snap = snapshot(), stamp = state.updatedAt;
+    try { await push(snap); state.syncedAt = stamp; persist(); setSync('ok'); }
+    catch (e) { onSyncError(e); }
+    finally { syncBusy = false; if (session && isDirty() && syncState === 'ok') scheduleSync(); }
+  }
+  // sinkron dua arah: yang terakhir diubah menang
+  async function syncNow(manual) {
+    if (!session || syncBusy) return;
+    if (!navigator.onLine) { setSync('offline'); if (manual) toast('Tidak ada koneksi internet'); return; }
+    syncBusy = true; setSync('syncing'); lastPull = Date.now();
+    try {
+      const remote = await pull();
+      const ru = remote ? Number((remote.data || {}).updatedAt || 0) : 0, lu = state.updatedAt || 0;
+      if (!remote || lu > ru) { const snap = snapshot(), stamp = state.updatedAt; await push(snap); state.syncedAt = stamp; persist(); }
+      else if (ru > lu) applyRemote(remote.data);
+      else { state.syncedAt = lu; persist(); }
+      setSync('ok');
+      if (manual) toast('Sinkronisasi selesai');
+    } catch (e) { onSyncError(e); if (manual && session) toast('Gagal menyinkronkan'); }
+    finally { syncBusy = false; }
+  }
+  function lockModal(html) {
+    modalCtx = { lock: true };
+    modalRoot.innerHTML = `<div class="scrim"></div><div class="mwrap" role="dialog" aria-modal="true">${html}</div>`;
+  }
+  function unlockModal() { modalCtx = null; modalRoot.innerHTML = ''; }
+  async function afterLogin() {
+    syncBusy = true; setSync('syncing');
+    try {
+      const remote = await pull();
+      const localHas = state.tx.length > 0 || state.named;
+      const rd = (remote && remote.data) || {};
+      const remoteHas = !!(remote && ((rd.tx && rd.tx.length) || rd.named));
+      if (!remote || (!remoteHas && localHas)) { const snap = snapshot(), stamp = state.updatedAt; await push(snap); state.syncedAt = stamp; persist(); toast('Data tersimpan di akun'); }
+      else if (!localHas) { applyRemote(rd); toast('Data akun dimuat'); }
+      else {
+        lockModal(`<div class="mcard"><h2>Data sudah ada di akun</h2><p>Akun ini sudah punya data. Pilih data yang mau dipakai.</p><p>Data yang tidak dipilih akan diganti.</p>
+          <button class="primary" data-action="use-remote">Pakai data akun</button><button class="ghost" data-action="use-local">Pakai data perangkat ini</button></div>`);
+        modalCtx.remote = rd;
+        setSync('ok'); syncBusy = false; render(true);
+        return;
+      }
+      setSync('ok');
+    } catch (e) { onSyncError(e); }
+    syncBusy = false;
+    render(true);
+    askName();
+  }
+  const authMsg = (e) => {
+    const c = e.code || '', m = (e.message || '').toLowerCase();
+    if (e instanceof TypeError) return 'Tidak ada koneksi internet';
+    if (c === 'invalid_credentials' || m.includes('invalid login')) return 'Email atau kata sandi salah';
+    if (c === 'user_already_exists' || m.includes('already registered')) return 'Email sudah terdaftar, silakan masuk';
+    if (c === 'weak_password') return 'Kata sandi terlalu lemah';
+    if (c === 'same_password') return 'Kata sandi baru harus berbeda dari yang lama';
+    if (c === 'email_not_confirmed') return 'Email belum diverifikasi. Cek kotak masukmu.';
+    if (e.status === 429 || c.includes('rate_limit')) return 'Terlalu banyak percobaan, coba lagi nanti';
+    return 'Terjadi kesalahan, coba lagi';
+  };
+  function forgotModal() {
+    openModal(`<form class="mcard" id="forgotf" novalidate><h2>Lupa Kata Sandi</h2>
+      <p>Masukkan emailmu. Kami akan mengirim link untuk membuat kata sandi baru.</p>
+      <label class="input">${icon('mail', 20)}<input id="a-email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="Email" value="${esc(authEmail)}"></label>
+      <div class="autherr" id="a-err" role="alert"></div>
+      <button type="submit" class="primary" id="a-go">Kirim Link Reset</button>
+      <button type="button" class="ghost" data-action="authmode" data-v="login">Kembali</button></form>`);
+    $('#forgotf').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const email = $('#a-email').value.trim().toLowerCase(), err = $('#a-err'), btn = $('#a-go');
+      authEmail = email; err.className = 'autherr'; err.textContent = '';
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'Format email belum benar'; return; }
+      btn.disabled = true; btn.textContent = 'Memproses...';
+      try {
+        await sb('/auth/v1/recover?redirect_to=' + encodeURIComponent(location.origin + location.pathname), { method: 'POST', body: { email } });
+        err.className = 'autherr ok'; err.textContent = 'Link reset sudah dikirim. Cek kotak masuk dan folder spam.';
+      } catch (ex) { err.textContent = authMsg(ex); }
+      btn.disabled = false; btn.textContent = 'Kirim Link Reset';
+    });
+  }
+  function recoveryModal(sess) {
+    openModal(`<form class="mcard" id="recf" novalidate><h2>Buat Kata Sandi Baru</h2>
+      <p>Masukkan kata sandi baru untuk akunmu.</p>
+      <label class="input">${icon('lock', 20)}<input id="a-pass" type="password" autocomplete="new-password" placeholder="Kata sandi baru"></label>
+      <label class="input">${icon('lock', 20)}<input id="a-pass2" type="password" autocomplete="new-password" placeholder="Ulangi kata sandi baru"></label>
+      <div class="autherr" id="a-err" role="alert"></div>
+      <button type="submit" class="primary" id="a-go">Simpan Kata Sandi</button>
+      <button type="button" class="ghost" data-action="close">Batal</button></form>`);
+    $('#recf').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const p1 = $('#a-pass').value, p2 = $('#a-pass2').value, err = $('#a-err'), btn = $('#a-go');
+      err.className = 'autherr'; err.textContent = '';
+      if (p1.length < 6) { err.textContent = 'Kata sandi minimal 6 karakter'; return; }
+      if (p1 !== p2) { err.textContent = 'Kata sandi tidak sama'; return; }
+      btn.disabled = true; btn.textContent = 'Memproses...';
+      try { await sb('/auth/v1/user', { method: 'PUT', token: sess.access_token, body: { password: p1 } }); }
+      catch (ex) { err.textContent = authMsg(ex); btn.disabled = false; btn.textContent = 'Simpan Kata Sandi'; return; }
+      session = sess; saveSession();
+      closeModal();
+      toast('Kata sandi diperbarui');
+      await afterLogin();
+    });
+  }
+  // link dari email (reset kata sandi / verifikasi) kembali ke aplikasi membawa token di bagian # alamat
+  function takeAuthHash() {
+    const h = location.hash;
+    if (!/^#(access_token|error)=/.test(h)) return null;
+    const p = new URLSearchParams(h.slice(1));
+    history.replaceState(null, '', location.pathname + location.search + '#/home');
+    return { token: p.get('access_token'), refresh: p.get('refresh_token') || '', exp: Number(p.get('expires_at') || 0), expIn: Number(p.get('expires_in') || 3600), type: p.get('type'), error: p.get('error_code') || p.get('error') };
+  }
+  async function handleAuthHash(a) {
+    if (a.error || !a.token) { toast('Link sudah kedaluwarsa, silakan minta lagi'); accountModal('login'); return; }
+    try {
+      const u = await sb('/auth/v1/user', { token: a.token });
+      const sess = { access_token: a.token, refresh_token: a.refresh, expires_at: a.exp || Math.floor(Date.now() / 1000) + a.expIn, user: { id: u.id, email: u.email } };
+      if (a.type === 'recovery') { recoveryModal(sess); return; }
+      session = sess; saveSession(); toast('Berhasil masuk'); await afterLogin();
+    } catch (e) { toast('Link sudah kedaluwarsa, silakan minta lagi'); accountModal('login'); }
+  }
+  function accountModal(mode) {
+    if (session) {
+      openModal(`<div class="mcard"><h2>Akun</h2>
+        <div class="acc-id"><span class="ci" style="width:44px;height:44px;background:var(--soft);color:var(--accent)">${icon('user-round', 22)}</span><div><b data-nt>${esc(session.user.email)}</b><small data-sync>${syncText()}</small></div></div>
+        <p>Datamu tersimpan di akun ini dan otomatis tersinkron ke perangkat lain yang masuk dengan akun yang sama.</p>
+        <button class="primary" data-action="syncnow">Sinkronkan Sekarang</button>
+        <button class="ghost" data-action="logout">Keluar</button>
+        <button class="ghost" data-action="close">Tutup</button></div>`);
+      return;
+    }
+    if (mode) authMode = mode;
+    const reg = authMode === 'register';
+    openModal(`<form class="mcard" id="authf" novalidate><h2>${reg ? 'Buat Akun' : 'Masuk'}</h2>
+      <p>${reg ? 'Daftar agar datamu tersimpan di akun dan bisa dipakai di perangkat lain.' : 'Masuk untuk menyinkronkan datamu.'}</p>
+      <div class="tabs"><button type="button" class="tab ${reg ? '' : 'on'}" data-action="authmode" data-v="login">Masuk</button><button type="button" class="tab ${reg ? 'on' : ''}" data-action="authmode" data-v="register">Daftar</button></div>
+      <label class="input">${icon('mail', 20)}<input id="a-email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="Email" value="${esc(authEmail)}"></label>
+      <label class="input">${icon('lock', 20)}<input id="a-pass" type="password" autocomplete="${reg ? 'new-password' : 'current-password'}" placeholder="Kata sandi"></label>
+      ${reg ? '' : '<button type="button" class="linkbtn" data-action="forgot">Lupa kata sandi?</button>'}
+      <div class="autherr" id="a-err" role="alert"></div>
+      <button type="submit" class="primary" id="a-go">${reg ? 'Daftar' : 'Masuk'}</button>
+      <button type="button" class="ghost" data-action="close">Batal</button></form>`);
+    $('#authf').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const email = $('#a-email').value.trim().toLowerCase(), pass = $('#a-pass').value, err = $('#a-err'), btn = $('#a-go');
+      authEmail = email; err.className = 'autherr'; err.textContent = '';
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'Format email belum benar'; return; }
+      if (pass.length < 6) { err.textContent = 'Kata sandi minimal 6 karakter'; return; }
+      btn.disabled = true; btn.textContent = 'Memproses...';
+      try {
+        if (reg) {
+          const r = await sb('/auth/v1/signup', { method: 'POST', body: { email, password: pass } });
+          if (!r || !r.access_token) { err.className = 'autherr ok'; err.textContent = 'Cek email kamu untuk verifikasi, lalu masuk.'; btn.disabled = false; btn.textContent = 'Daftar'; return; }
+          setSession(r);
+        } else {
+          setSession(await sb('/auth/v1/token?grant_type=password', { method: 'POST', body: { email, password: pass } }));
+        }
+      } catch (ex) { err.textContent = authMsg(ex); btn.disabled = false; btn.textContent = reg ? 'Daftar' : 'Masuk'; return; }
+      authEmail = '';
+      closeModal();
+      toast('Berhasil masuk');
+      await afterLogin();
+    });
+  }
+  window.addEventListener('online', () => syncNow());
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && session && Date.now() - lastPull > 20000) syncNow(); });
+
+  /* =====================================================================
      Aksi
      ===================================================================== */
   function installHelp() {
@@ -1149,6 +1433,23 @@
     'edit-name': () => promptModal({ title: 'Ubah Nama', value: state.name, placeholder: 'Nama kamu', onSave: (v) => { state.name = v.slice(0, 24); save(); toast('Nama diperbarui'); } }),
     currency: () => toast('Saat ini hanya mendukung Rupiah (Rp)'),
     language: () => languageModal(),
+    account: () => accountModal(),
+    forgot: () => { authEmail = ($('#a-email') || {}).value || authEmail; forgotModal(); },
+    authmode: (el) => { authEmail = ($('#a-email') || {}).value || authEmail; accountModal(el.dataset.v); },
+    syncnow: () => syncNow(true),
+    'use-remote': () => { const d = modalCtx && modalCtx.remote; unlockModal(); if (d) { applyRemote(d); toast('Data akun dimuat'); } askName(); },
+    'use-local': async () => {
+      unlockModal(); syncBusy = true; setSync('syncing');
+      try { const snap = snapshot(), stamp = state.updatedAt; await push(snap); state.syncedAt = stamp; persist(); setSync('ok'); toast('Data tersimpan di akun'); }
+      catch (e) { onSyncError(e); }
+      syncBusy = false; render(true); askName();
+    },
+    'welcome-login': () => { unlockModal(); accountModal('login'); },
+    logout: () => {
+      const t = session && session.access_token;
+      if (t) sb('/auth/v1/logout', { method: 'POST', token: t }).catch(() => {});
+      session = null; saveSession(); setSync('idle'); closeModal(); render(true); toast('Berhasil keluar');
+    },
     setlang: (el) => { closeModal(); setLang(el.dataset.v); },
     backup: () => {
       try {
@@ -1164,7 +1465,7 @@
       } catch (e) { toast('Gagal membuat backup'); }
     },
     wipe: () => confirmModal({
-      title: 'Hapus Semua Data?', text: 'Semua transaksi dan pengaturan akan dihapus permanen dari perangkat ini.', label: 'Hapus', danger: true,
+      title: 'Hapus Semua Data?', text: session ? 'Semua transaksi dan pengaturan akan dihapus permanen dari perangkat ini dan dari akunmu.' : 'Semua transaksi dan pengaturan akan dihapus permanen dari perangkat ini.', label: 'Hapus', danger: true,
       onYes: () => { const keepName = ''; state = defaults(); state.name = keepName; save(); ui.open = null; ui.statMonth = curMonth(); applyTheme(); render(); toast('Semua data dihapus'); askName(); }
     }),
     toggle: (el) => {
@@ -1234,6 +1535,7 @@
   load();
   lang = state.settings.lang === 'en' ? 'en' : 'id';
   applyTheme();
+  const authHash = takeAuthHash();
   if (!location.hash) history.replaceState(null, '', '#/home');
   render();
   $$('[data-ic]').forEach((el) => { if (!el.firstChild) el.innerHTML = icon(el.dataset.ic, Number(el.dataset.size) || 20); });
@@ -1241,6 +1543,7 @@
   $$('.side-item, .side-add').forEach((el) => el.setAttribute('title', el.textContent.trim()));
 
   applyLang();
+  if (authHash) handleAuthHash(authHash); else if (session) syncNow();
   const splash = $('#splash');
   let seen = false;
   try { seen = sessionStorage.getItem('kk:splash') === '1'; sessionStorage.setItem('kk:splash', '1'); } catch (e) { /* abaikan */ }
