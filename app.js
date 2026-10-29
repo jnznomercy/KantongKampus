@@ -1344,8 +1344,8 @@
   function recoveryModal(sess) {
     openModal(`<form class="mcard" id="recf" novalidate><h2>Buat Kata Sandi Baru</h2>
       <p>Masukkan kata sandi baru untuk akunmu.</p>
-      <label class="input">${icon('lock', 20)}<input id="a-pass" type="password" autocomplete="new-password" placeholder="Kata sandi baru"></label>
-      <label class="input">${icon('lock', 20)}<input id="a-pass2" type="password" autocomplete="new-password" placeholder="Ulangi kata sandi baru"></label>
+      <label class="input">${icon('lock', 20)}<input id="a-pass" type="password" autocomplete="new-password" placeholder="Kata sandi baru"><button type="button" class="eye" data-action="eye" aria-label="Tampilkan kata sandi">${icon('eye', 20)}</button></label>
+      <label class="input">${icon('lock', 20)}<input id="a-pass2" type="password" autocomplete="new-password" placeholder="Ulangi kata sandi baru"><button type="button" class="eye" data-action="eye" aria-label="Tampilkan kata sandi">${icon('eye', 20)}</button></label>
       <div class="autherr" id="a-err" role="alert"></div>
       <button type="submit" class="primary" id="a-go">Simpan Kata Sandi</button>
       <button type="button" class="ghost" data-action="close">Batal</button></form>`);
@@ -1397,7 +1397,7 @@
       <p>${reg ? 'Daftar agar datamu tersimpan di akun dan bisa dipakai di perangkat lain.' : 'Masuk untuk menyinkronkan datamu.'}</p>
       <div class="tabs"><button type="button" class="tab ${reg ? '' : 'on'}" data-action="authmode" data-v="login">Masuk</button><button type="button" class="tab ${reg ? 'on' : ''}" data-action="authmode" data-v="register">Daftar</button></div>
       <label class="input">${icon('mail', 20)}<input id="a-email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="Email" value="${esc(authEmail)}"></label>
-      <label class="input">${icon('lock', 20)}<input id="a-pass" type="password" autocomplete="${reg ? 'new-password' : 'current-password'}" placeholder="Kata sandi"></label>
+      <label class="input">${icon('lock', 20)}<input id="a-pass" type="password" autocomplete="${reg ? 'new-password' : 'current-password'}" placeholder="Kata sandi"><button type="button" class="eye" data-action="eye" aria-label="Tampilkan kata sandi">${icon('eye', 20)}</button></label>
       ${reg ? '' : '<button type="button" class="linkbtn" data-action="forgot">Lupa kata sandi?</button>'}
       <div class="autherr" id="a-err" role="alert"></div>
       <button type="submit" class="primary" id="a-go">${reg ? 'Daftar' : 'Masuk'}</button>
@@ -1579,6 +1579,15 @@
     }
   };
 
+  actions.eye = (el) => {
+    const inp = el.parentElement.querySelector('input');
+    if (!inp) return;
+    const show = inp.type === 'password';
+    inp.type = show ? 'text' : 'password';
+    el.innerHTML = icon(show ? 'eye-off' : 'eye', 20);
+    el.setAttribute('aria-label', show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
+    inp.focus();
+  };
   document.addEventListener('click', (e) => {
     const el = e.target.closest('[data-action]');
     if (!el || el.disabled) return;
