@@ -1,5 +1,5 @@
 /* KantongKampus service worker: app shell offline + runtime cache untuk font */
-const VERSION = 'kk-v36';
+const VERSION = 'kk-v37';
 const SHELL = [
   './',
   'index.html',
