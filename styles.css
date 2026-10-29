@@ -576,5 +576,52 @@ b,strong{font-weight:700}
 .mcard .tabs{max-width:none}
 .linkbtn{align-self:flex-end;margin:-6px 0 -6px;padding:2px 0;color:var(--accent);font-size:calc(12px * var(--fs));font-weight:700;background:none}
 
+/* ===== Efek animasi ===== */
+@keyframes rise{from{opacity:0;transform:translate(var(--dx,0),14px)}to{opacity:1;transform:none}}
+@keyframes growx{from{width:0}}
+@keyframes growy{from{height:0}}
+@keyframes spinin{from{opacity:0;transform:rotate(-100deg) scale(.9)}to{opacity:1;transform:none}}
+@keyframes navpop{0%{transform:translateY(3px) scale(.7)}60%{transform:translateY(-2px) scale(1.15)}100%{transform:none}}
+@keyframes sheet{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+
+/* halaman masuk: tiap blok muncul berurutan */
+#view.enter > .stack > *{animation:rise .42s cubic-bezier(.2,.7,.2,1) backwards}
+#view.enter > .stack > *:nth-child(2){animation-delay:.05s}
+#view.enter > .stack > *:nth-child(3){animation-delay:.1s}
+#view.enter > .stack > *:nth-child(4){animation-delay:.15s}
+#view.enter > .stack > *:nth-child(5){animation-delay:.2s}
+#view.enter > .stack > *:nth-child(6){animation-delay:.25s}
+#view.enter > .stack > *:nth-child(n+7){animation-delay:.3s}
+/* batang, grafik, dan lingkaran tumbuh saat halaman muncul */
+#view.enter .bar > i{animation:growx .8s cubic-bezier(.2,.7,.2,1) .2s backwards}
+#view.enter .bars i{animation:growy .8s cubic-bezier(.2,.7,.2,1) .25s backwards}
+#view.enter .donut svg,#view.enter .ring-wrap svg{animation:spinin .9s cubic-bezier(.2,.7,.2,1) .15s backwards}
+
+/* sentuhan dan hover */
+.nav-item,.fab,.tab,.tx,.set,.tt,.av-act,.av-opt,.primary,.ghost,.danger-btn,.side-item,.side-add,.pf-edit,.go{transition:transform .15s ease,background-color .2s,color .2s,box-shadow .2s}
+.nav-item:active,.tab:active,.tx:active,.set:active,.tt:active,.av-act:active,.av-opt:active,.primary:active,.ghost:active,.danger-btn:active,.pf-edit:active,.go:active{transform:scale(.97)}
+.fab{transition:transform .25s cubic-bezier(.3,1.5,.5,1),box-shadow .25s}
+.fab:active{transform:scale(.9) rotate(90deg)}
+.nav-item.on .ni-ic{animation:navpop .4s ease}
+@media (hover:hover){
+  .side-add:hover{transform:translateY(-1px);box-shadow:0 6px 14px color-mix(in srgb,var(--accent) 35%,transparent)}
+  .side-item:hover .ni-ic,.side-item:hover svg{transform:scale(1.08)}
+  .tt:hover,.av-act:hover{transform:translateY(-1px)}
+}
+.side-item svg{transition:transform .15s}
+
+/* jendela, tombol, dan pesan */
+.mwrap{animation:fade .18s ease}
+.mcard{animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
+.xfab{animation:pop .3s ease .08s backwards}
+.catlist button,.av-opt{transition:transform .15s,box-shadow .2s}
+.toast{transition:opacity .25s,transform .3s cubic-bezier(.2,.8,.2,1)}
+.toast.show{transform:translate(-50%,0)}
+
+/* ganti tema terasa halus */
+body,.card,.panel,.rowcard,.search,.input,.nflist,.install{transition:background-color .3s ease,border-color .3s ease,color .3s ease}
+@media (prefers-reduced-motion:reduce){#view.enter > .stack > *,#view.enter .bar > i,#view.enter .bars i,.nav-item.on .ni-ic{animation:none!important}}
+@media (min-width:900px){#view.enter > .stack > *{--dx:0px}}
+
 /* Splash disembunyikan di desktop */
 @media (min-width:900px){ .splash{display:none} }
