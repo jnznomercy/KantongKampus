@@ -1,1 +1,12 @@
-
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.vercel.kantongkampus.twa",
+      "sha256_cert_fingerprints": [
+        "C8:96:E6:09:C8:BA:23:4B:D8:AA:A0:A8:64:13:DD:2D:91:F9:52:C8:19:EC:53:C0:DB:39:67:D8:5C:F3:CF:4E"
+      ]
+    }
+  }
+]
