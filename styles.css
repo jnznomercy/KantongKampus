@@ -240,6 +240,8 @@ b,strong{font-weight:700}
 .input{position:relative;display:flex;align-items:center;gap:12px;height:58px;padding:0 15px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--muted);width:100%}
 .input input[type=text],.input input[type=number],.input input[type=email],.input input[type=password]{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:calc(14px * var(--fs));color:var(--text);height:100%}
 .input input::placeholder{color:var(--muted)}
+.input .eye{flex-shrink:0;display:grid;place-items:center;width:34px;height:34px;margin-right:-8px;border-radius:50%;background:none;color:var(--muted);transition:color .2s,background-color .2s}
+.input .eye:active{background:var(--soft);color:var(--accent)}
 .input:focus-within{border-color:var(--accent)}
 .input .v{flex:1;min-width:0;font-size:calc(14px * var(--fs));color:var(--muted)}
 .input .v.has{color:var(--text)}
@@ -584,14 +586,19 @@ b,strong{font-weight:700}
 @keyframes navpop{0%{transform:translateY(3px) scale(.7)}60%{transform:translateY(-2px) scale(1.15)}100%{transform:none}}
 @keyframes sheet{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
 
-/* halaman masuk: tiap blok muncul berurutan */
-#view.enter > .stack > *{animation:rise .42s cubic-bezier(.2,.7,.2,1) backwards}
-#view.enter > .stack > *:nth-child(2){animation-delay:.05s}
-#view.enter > .stack > *:nth-child(3){animation-delay:.1s}
-#view.enter > .stack > *:nth-child(4){animation-delay:.15s}
-#view.enter > .stack > *:nth-child(5){animation-delay:.2s}
-#view.enter > .stack > *:nth-child(6){animation-delay:.25s}
-#view.enter > .stack > *:nth-child(n+7){animation-delay:.3s}
+/* halaman masuk: di mobile seluruh halaman bergerak satu kesatuan, di desktop blok muncul berurutan */
+@keyframes viewin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+#view.enter > .stack{animation:viewin .26s ease-out backwards}
+@media (min-width:900px){
+  #view.enter > .stack{animation:none}
+  #view.enter > .stack > *{animation:rise .42s cubic-bezier(.2,.7,.2,1) backwards}
+  #view.enter > .stack > *:nth-child(2){animation-delay:.05s}
+  #view.enter > .stack > *:nth-child(3){animation-delay:.1s}
+  #view.enter > .stack > *:nth-child(4){animation-delay:.15s}
+  #view.enter > .stack > *:nth-child(5){animation-delay:.2s}
+  #view.enter > .stack > *:nth-child(6){animation-delay:.25s}
+  #view.enter > .stack > *:nth-child(n+7){animation-delay:.3s}
+}
 /* batang, grafik, dan lingkaran tumbuh saat halaman muncul */
 #view.enter .bar > i{animation:growx .8s cubic-bezier(.2,.7,.2,1) .2s backwards}
 #view.enter .bars i{animation:growy .8s cubic-bezier(.2,.7,.2,1) .25s backwards}
@@ -620,7 +627,7 @@ b,strong{font-weight:700}
 
 /* ganti tema terasa halus */
 body,.card,.panel,.rowcard,.search,.input,.nflist,.install{transition:background-color .3s ease,border-color .3s ease,color .3s ease}
-@media (prefers-reduced-motion:reduce){#view.enter > .stack > *,#view.enter .bar > i,#view.enter .bars i,.nav-item.on .ni-ic{animation:none!important}}
+@media (prefers-reduced-motion:reduce){#view.enter > .stack,#view.enter > .stack > *,#view.enter .bar > i,#view.enter .bars i,.nav-item.on .ni-ic{animation:none!important}}
 @media (min-width:900px){#view.enter > .stack > *{--dx:0px}}
 
 /* Splash disembunyikan di desktop */
