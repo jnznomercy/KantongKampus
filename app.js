@@ -45,6 +45,7 @@
     'info': '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
     'languages': '<path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/>',
     'cloud': '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>',
+    'cloud-download': '<path d="M12 13v8l-4-4"/><path d="m12 21 4-4"/><path d="M4.393 15.269A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>',
     'cloud-upload': '<path d="M12 13v8"/><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m8 17 4-4 4 4"/>',
     'trash-2': '<path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
     'circle-check': '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
@@ -599,7 +600,7 @@
         <section class="pg-acc"><h2 class="grp-t">Akun</h2><div class="card pad12 grp">${setRow('user-round', 'Ubah Nama', '', 'edit-name')}</div></section>
         <section><h2 class="grp-t">Keuangan</h2><div class="card pad12 grp">${setRow('banknote', 'Mata Uang', 'Rupiah (Rp)', 'currency', '', '', 'Mata uang yang dipakai di seluruh aplikasi')}${setRow('bell', 'Pengaturan Notifikasi', '', 'nav', 'data-to="notifpref"', '', 'Pilih jenis notifikasi yang ingin kamu terima')}</div></section>
         <section><h2 class="grp-t">Aplikasi</h2><div class="card pad12 grp">${setRow('palette', 'Tema', themeName(), 'nav', 'data-to="tema"', '', 'Terang, gelap, atau ikuti sistem')}${setRow('languages', 'Bahasa', langName(), 'language', '', '', 'Bahasa tampilan aplikasi')}</div></section>
-        <section><h2 class="grp-t">Data</h2><div class="card pad12 grp">${setRow('cloud', 'Akun & Sinkronisasi', session ? 'Terhubung' : 'Belum masuk', 'account', '', '', session ? esc(session.user.email) : 'Masuk agar data bisa dipakai di perangkat lain')}${setRow('cloud-upload', 'Backup Data', '', 'backup', '', '', 'Simpan salinan datamu ke perangkat')}${setRow('trash-2', 'Hapus Semua Data', '', 'wipe', '', 'danger', 'Hapus semua transaksi dan kembalikan pengaturan awal')}</div></section>
+        <section><h2 class="grp-t">Data</h2><div class="card pad12 grp">${setRow('cloud', 'Akun & Sinkronisasi', session ? 'Terhubung' : 'Belum masuk', 'account', '', '', session ? esc(session.user.email) : 'Masuk agar data bisa dipakai di perangkat lain')}${setRow('cloud-upload', 'Backup Data', '', 'backup', '', '', 'Simpan salinan datamu ke perangkat')}${setRow('cloud-download', 'Pulihkan Data', '', 'restore', '', '', 'Pulihkan dari file backup (.json)')}${setRow('trash-2', 'Hapus Semua Data', '', 'wipe', '', 'danger', 'Hapus semua transaksi dan kembalikan pengaturan awal')}</div></section>
         <section><h2 class="grp-t">Tentang</h2><div class="card pad12 grp">${setRow('info', 'Tentang Aplikasi', 'Versi 1.0.0', 'about', '', '', 'Informasi tentang KantongKampus')}${isStandalone() ? '' : setRow('smartphone', 'Pasang Aplikasi', '', 'install', '', '', 'Tambahkan ke layar utama perangkatmu')}</div></section>
       </div>
     </div>`;
@@ -755,16 +756,47 @@
     const [, name = 'home', arg] = location.hash.replace('#', '').split('/');
     return { name: views[name] ? name : 'home', arg };
   }
+  const NAV_ORDER = ['home', 'keuangan', 'statistik', 'profil'];
+  let lastNav = -1;
+  const reduceMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  // angka saldo "berhitung" naik saat membuka Home
+  function countUp() {
+    const el = $('.balance .big');
+    if (!el || reduceMotion()) return;
+    const txt = el.textContent;
+    if (txt.indexOf('•') >= 0) return;
+    const sign = /-/.test(txt) ? -1 : 1, n = Number(txt.replace(/\D/g, ''));
+    if (!n) return;
+    const t0 = performance.now(), D = 700;
+    const step = (t) => {
+      if (!el.isConnected) return;
+      const k = Math.min(1, (t - t0) / D), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = rp(sign * Math.round(n * (k >= 1 ? 1 : e)));
+      if (k < 1) requestAnimationFrame(step);
+    };
+    el.textContent = rp(0);
+    requestAnimationFrame(step);
+  }
   function render(keep) {
     const { name, arg } = route();
     const top = view.scrollTop;
+    view.classList.remove('enter');
+    if (!keep) {
+      // arah geser mengikuti urutan menu: ke kanan kalau menu berikutnya, ke kiri kalau sebelumnya
+      const idx = NAV_ORDER.indexOf(NAVMAP[name] || name);
+      const dir = lastNav >= 0 && idx >= 0 && idx !== lastNav ? (idx > lastNav ? 1 : -1) : 0;
+      if (idx >= 0) lastNav = idx;
+      view.style.setProperty('--dx', dir * 24 + 'px');
+    }
     view.innerHTML = views[name](arg);
+    if (!keep) { void view.offsetWidth; view.classList.add('enter'); }
     view.classList.toggle('no-nav', NAVLESS.includes(name));
     $('#nav').classList.toggle('hidden', NAVLESS.includes(name));
     $$('[data-nav]').forEach((b) => b.classList.toggle('on', NAVMAP[name] === b.dataset.nav));
     $$('[data-nav="notifikasi"]').forEach((b) => b.classList.toggle('has-dot', hasUnread()));
     view.scrollTop = keep ? top : 0;
     bind(name);
+    if (!keep && name === 'home') countUp();
     document.title = 'KantongKampus';
   }
   function bind(name) {
@@ -981,6 +1013,8 @@
     'Kata sandi baru': 'New password', 'Ulangi kata sandi baru': 'Repeat new password', 'Simpan Kata Sandi': 'Save Password',
     'Kata sandi tidak sama': 'Passwords do not match', 'Kata sandi diperbarui': 'Password updated', 'Link sudah kedaluwarsa, silakan minta lagi': 'Link expired, please request a new one',
     'Kata sandi baru harus berbeda dari yang lama': 'New password must be different from the old one',
+    'Pulihkan Data': 'Restore Data', 'Pulihkan dari file backup (.json)': 'Restore from a backup file (.json)', 'Pulihkan Data?': 'Restore Data?', 'Pulihkan': 'Restore',
+    'Data berhasil dipulihkan': 'Data restored', 'File backup tidak valid': 'Invalid backup file',
     'Pasang': 'Install', 'Tutup': 'Close', 'Mengerti': 'Got it', 'Batal': 'Cancel', 'Simpan': 'Save', 'Hapus': 'Delete', 'Ambil': 'Capture',
     'Ubah Foto Profil': 'Change Profile Photo', 'Pilih Avatar': 'Choose Avatar', 'Ambil Foto': 'Take Photo', 'Pilih dari Album': 'Choose from Album', 'Hapus Foto': 'Remove Photo',
     'Avatar diperbarui': 'Avatar updated', 'Foto profil diperbarui': 'Profile photo updated', 'Foto dihapus': 'Photo removed',
@@ -1020,6 +1054,7 @@
   const MONEN = { Januari: 'January', Februari: 'February', Maret: 'March', Mei: 'May', Juni: 'June', Juli: 'July', Agustus: 'August', Oktober: 'October', Desember: 'December', Agu: 'Aug', Okt: 'Oct', Des: 'Dec' };
   const RULES = [
     [/^Halo, ([\s\S]+)!$/, 'Hello, $1!'],
+    [/^File backup berisi (\d+) transaksi\. Data saat ini akan diganti\.( Data di akunmu ikut diperbarui\.)?$/, (m) => `The backup file contains ${m[1]} transactions. Current data will be replaced.${m[2] ? ' Your account data will be updated too.' : ''}`],
     [/^(\d+) Transaksi$/, (m) => `${m[1]} ${m[1] === '1' ? 'Transaction' : 'Transactions'}`],
     [/^Ringkasan ([\s\S]+)$/, 'Summary $1'],
     [/^Pemasukan (Rp [\d.,]+)$/, 'Income $1'],
@@ -1255,6 +1290,37 @@
     if (e.status === 429 || c.includes('rate_limit')) return 'Terlalu banyak percobaan, coba lagi nanti';
     return 'Terjadi kesalahan, coba lagi';
   };
+  // pulihkan data dari file backup (.json) yang dibuat tombol Backup Data
+  function validBackup(j) {
+    const d = j && j.app === 'KantongKampus' ? j.data : null;
+    if (!d || typeof d !== 'object' || !Array.isArray(d.tx)) return null;
+    const ok = d.tx.every((t) => t && (t.type === 'in' || t.type === 'out') && Number.isFinite(Number(t.amount)) && typeof t.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(t.date));
+    return ok ? d : null;
+  }
+  function pickBackup() {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = '.json,application/json';
+    inp.onchange = async () => {
+      const f = inp.files && inp.files[0];
+      if (!f) return;
+      if (f.size > 10 * 1024 * 1024) { toast('File backup tidak valid'); return; }
+      let d = null;
+      try { d = validBackup(JSON.parse(await f.text())); } catch (e) { d = null; }
+      if (!d) { toast('File backup tidak valid'); return; }
+      confirmModal({
+        title: 'Pulihkan Data?', label: 'Pulihkan', danger: true,
+        text: `File backup berisi ${d.tx.length} transaksi. Data saat ini akan diganti.${session ? ' Data di akunmu ikut diperbarui.' : ''}`,
+        onYes: () => {
+          applyRemote(d);
+          delete state.syncedAt;
+          save();
+          toast('Data berhasil dipulihkan');
+          askName();
+        }
+      });
+    };
+    inp.click();
+  }
   function forgotModal() {
     openModal(`<form class="mcard" id="forgotf" novalidate><h2>Lupa Kata Sandi</h2>
       <p>Masukkan emailmu. Kami akan mengirim link untuk membuat kata sandi baru.</p>
@@ -1434,6 +1500,7 @@
     currency: () => toast('Saat ini hanya mendukung Rupiah (Rp)'),
     language: () => languageModal(),
     account: () => accountModal(),
+    restore: () => pickBackup(),
     forgot: () => { authEmail = ($('#a-email') || {}).value || authEmail; forgotModal(); },
     authmode: (el) => { authEmail = ($('#a-email') || {}).value || authEmail; accountModal(el.dataset.v); },
     syncnow: () => syncNow(true),
