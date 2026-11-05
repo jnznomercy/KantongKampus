@@ -1603,6 +1603,22 @@
     el.setAttribute('aria-label', show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
     inp.focus();
   };
+  // tombol kembali Android: tutup jendela, kembali ke halaman sebelumnya, di Home tekan dua kali untuk keluar
+  (function setupBackButton() {
+    const A = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+    if (!isNative() || !A || !A.addListener) return;
+    let lastBack = 0;
+    A.addListener('backButton', () => {
+      if (modalRoot.firstChild) { closeModal(); return; }
+      const r = route().name;
+      if (r === 'tambah' || r === 'tema' || r === 'notifpref' || r === 'pengaturan') { actions.back(); return; }
+      if (r !== 'home') { go('home'); return; }
+      const now = Date.now();
+      if (now - lastBack < 2000) { A.exitApp(); return; }
+      lastBack = now;
+      toast('Tekan sekali lagi untuk keluar');
+    });
+  })();
   document.addEventListener('click', (e) => {
     const el = e.target.closest('[data-action]');
     if (!el || el.disabled) return;
