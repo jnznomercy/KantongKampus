@@ -241,11 +241,14 @@
   const isNative = () => !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || /; wv\)/.test(navigator.userAgent || '');
   const isStandalone = () => isNative() || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
   const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const installBanner = () => (isStandalone() || installDismissed || !(deferredInstall || isIOS())) ? '' : `
+  // di Android (browser biasa) tombol pasang mengunduh APK; di iPhone dan desktop tetap cara pasang bawaan
+  const APK_URL = 'https://github.com/jznomercy/KantongKampus/releases/latest/download/KantongKampus.apk';
+  const isAndroid = () => /android/i.test(navigator.userAgent || '') && !isNative();
+  const installBanner = () => (isStandalone() || installDismissed || !(isAndroid() || deferredInstall || isIOS())) ? '' : `
       <div class="install">
         <span class="ic"><img src="icons/icon-192.png" alt=""></span>
-        <span class="t"><b>Pasang KantongKampus</b><small>Buka dari layar utama dan tetap bisa dipakai tanpa internet.</small></span>
-        <button class="go" data-action="install">Pasang</button>
+        <span class="t"><b>Pasang KantongKampus</b><small>${isAndroid() ? 'Unduh aplikasinya untuk Android dan pakai langsung dari layar utama.' : 'Buka dari layar utama dan tetap bisa dipakai tanpa internet.'}</small></span>
+        <button class="go" data-action="install">${isAndroid() ? 'Unduh APK' : 'Pasang'}</button>
         <button class="x" data-action="dismiss-install" aria-label="Tutup">${icon('x', 16)}</button>
       </div>`;
 
@@ -1017,7 +1020,7 @@
     'Kata sandi baru harus berbeda dari yang lama': 'New password must be different from the old one',
     'Pulihkan Data': 'Restore Data', 'Pulihkan dari file backup (.json)': 'Restore from a backup file (.json)', 'Pulihkan Data?': 'Restore Data?', 'Pulihkan': 'Restore',
     'Data berhasil dipulihkan': 'Data restored', 'File backup tidak valid': 'Invalid backup file',
-    'Pasang': 'Install', 'Tutup': 'Close', 'Mengerti': 'Got it', 'Batal': 'Cancel', 'Simpan': 'Save', 'Hapus': 'Delete', 'Ambil': 'Capture',
+    'Pasang': 'Install', 'Unduh APK': 'Download APK', 'Unduh aplikasinya untuk Android dan pakai langsung dari layar utama.': 'Download the Android app and use it right from your home screen.', 'Mengunduh APK. Buka filenya untuk memasang': 'Downloading the APK. Open the file to install', 'Tutup': 'Close', 'Mengerti': 'Got it', 'Batal': 'Cancel', 'Simpan': 'Save', 'Hapus': 'Delete', 'Ambil': 'Capture',
     'Ubah Foto Profil': 'Change Profile Photo', 'Pilih Avatar': 'Choose Avatar', 'Ambil Foto': 'Take Photo', 'Pilih dari Album': 'Choose from Album', 'Hapus Foto': 'Remove Photo',
     'Avatar diperbarui': 'Avatar updated', 'Foto profil diperbarui': 'Profile photo updated', 'Foto dihapus': 'Photo removed',
     'Kamera tidak bisa diakses': 'Cannot access camera', 'Kamera belum siap': 'Camera not ready', 'Pilih file gambar ya': 'Please choose an image file', 'Gambar tidak bisa dibuka': 'Cannot open image',
@@ -1489,11 +1492,18 @@
     statnext: () => { if (ui.statMonth < curMonth()) { ui.statMonth = shiftMonth(ui.statMonth, 1); render(true); } },
     about: () => {
       openModal(`<div class="mcard"><h2>KantongKampus</h2><p>Versi 1.0.0<br>Catat dan kelola keuangan mahasiswa. Data tersimpan di perangkat ini dan bisa dipakai tanpa internet.</p>
-        ${!isStandalone() && deferredInstall ? '<button class="primary" data-action="install">Pasang Aplikasi</button>' : ''}
+        ${!isStandalone() && (deferredInstall || isAndroid()) ? `<button class="primary" data-action="install">${isAndroid() ? 'Unduh APK' : 'Pasang Aplikasi'}</button>` : ''}
         <button class="ghost" data-action="close">Tutup</button></div>`);
     },
     install: async () => {
       closeModal();
+      if (isAndroid()) {
+        const a = document.createElement('a');
+        a.href = APK_URL; a.rel = 'noopener';
+        document.body.appendChild(a); a.click(); a.remove();
+        toast('Mengunduh APK. Buka filenya untuk memasang');
+        return;
+      }
       if (deferredInstall) { const p = deferredInstall; deferredInstall = null; p.prompt(); await p.userChoice.catch(() => {}); render(true); return; }
       installHelp();
     },
