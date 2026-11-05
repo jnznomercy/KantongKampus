@@ -237,7 +237,9 @@
   let deferredInstall = null;
   let installDismissed = false;
   try { installDismissed = localStorage.getItem('kk:install-dismissed') === '1'; } catch (e) { /* abaikan */ }
-  const isStandalone = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+  // di dalam aplikasi Android (Capacitor/WebView) tidak perlu tombol pasang
+  const isNative = () => !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || /; wv\)/.test(navigator.userAgent || '');
+  const isStandalone = () => isNative() || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
   const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const installBanner = () => (isStandalone() || installDismissed || !(deferredInstall || isIOS())) ? '' : `
       <div class="install">
@@ -1518,18 +1520,31 @@
       session = null; saveSession(); setSync('idle'); closeModal(); render(true); toast('Berhasil keluar');
     },
     setlang: (el) => { closeModal(); setLang(el.dataset.v); },
-    backup: () => {
+    backup: async () => {
       try {
-        const blob = new Blob([JSON.stringify({ app: 'KantongKampus', exportedAt: new Date().toISOString(), data: state }, null, 2)], { type: 'application/json' });
+        const json = JSON.stringify({ app: 'KantongKampus', exportedAt: new Date().toISOString(), data: state }, null, 2);
+        const name = `kantongkampus-backup-${today()}.json`;
+        // di dalam aplikasi Android, unduhan lewat blob tidak jalan: simpan ke cache lalu buka menu bagikan
+        const P = window.Capacitor && window.Capacitor.Plugins;
+        if (isNative() && P && P.Filesystem && P.Share) {
+          const f = await P.Filesystem.writeFile({ path: name, data: json, directory: 'CACHE', encoding: 'utf8' });
+          await P.Share.share({ title: 'Backup KantongKampus', url: f.uri, dialogTitle: 'Simpan backup' });
+          toast('Pilih tempat menyimpan backup');
+          return;
+        }
+        const blob = new Blob([json], { type: 'application/json' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `kantongkampus-backup-${today()}.json`;
+        a.download = name;
         document.body.appendChild(a);
         a.click();
         a.remove();
         setTimeout(() => URL.revokeObjectURL(a.href), 2000);
         toast('Backup diunduh');
-      } catch (e) { toast('Gagal membuat backup'); }
+      } catch (e) {
+        if (e && /cancel|dismiss/i.test(String(e.message || e))) return;
+        toast('Gagal membuat backup');
+      }
     },
     wipe: () => confirmModal({
       title: 'Hapus Semua Data?', text: session ? 'Semua transaksi dan pengaturan akan dihapus permanen dari perangkat ini dan dari akunmu.' : 'Semua transaksi dan pengaturan akan dihapus permanen dari perangkat ini.', label: 'Hapus', danger: true,
