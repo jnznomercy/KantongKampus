@@ -1,0 +1,16 @@
+{
+  "name": "kantongkampus-android",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pembungkus Android (Capacitor) untuk KantongKampus",
+  "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/filesystem": "^8.0.0",
+    "@capacitor/share": "^8.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^4.0.0"
+  }
+}

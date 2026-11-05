@@ -1,0 +1,11 @@
+{
+  "appId": "app.kantongkampus",
+  "appName": "KantongKampus",
+  "webDir": "www",
+  "backgroundColor": "#ffffff",
+  "server": {
+    "url": "https://kantongkampus.vercel.app",
+    "androidScheme": "https",
+    "errorPath": "error.html"
+  }
+}
