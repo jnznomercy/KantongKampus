@@ -261,13 +261,27 @@
     const f = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
     return 0.2126 * f((n >> 16) & 255) + 0.7152 * f((n >> 8) & 255) + 0.0722 * f(n & 255);
   }
+  // warna aksen yang aman dibaca: dipakai untuk teks/ikon (--ax) dan grafik/toggle (--ag) di atas permukaan terang atau gelap
+  const toRGB = (hex) => { const n = parseInt(hex.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+  const toHex = (a) => '#' + a.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
+  const mixHex = (hex, to, t) => { const a = toRGB(hex), b = toRGB(to); return toHex(a.map((v, i) => v + (b[i] - v) * t)); };
+  const ratio = (h1, h2) => { const a = lum(h1) + 0.05, b = lum(h2) + 0.05; return a > b ? a / b : b / a; };
+  const readable = (hex, bg, min, to, from) => { let t = from || 0, c = mixHex(hex, to, t); while (ratio(c, bg) < min && t < 1) { t += 0.04; c = mixHex(hex, to, t); } return c; };
+  const onAcc = (hex) => (ratio(hex, '#ffffff') >= ratio(hex, '#243c47') ? '#ffffff' : '#243c47');
   function applyTheme() {
     const s = state.settings;
     const dark = s.followSystem ? !!(mq && mq.matches) : s.theme === 'dark';
     const r = document.documentElement;
     r.dataset.theme = dark ? 'dark' : 'light';
     r.style.setProperty('--accent', s.accent);
-    r.style.setProperty('--on-accent', lum(s.accent) > 0.4 ? '#243c47' : '#ffffff');
+    r.style.setProperty('--on-accent', onAcc(s.accent));
+    const surf = dark ? '#253c47' : '#e9f0ef', toward = dark ? '#ffffff' : '#000000';
+    r.style.setProperty('--ax', readable(s.accent, surf, 4.5, toward));
+    r.style.setProperty('--ag', readable(s.accent, surf, 3, toward));
+    // kartu saldo: aksen terang tetap terang dengan teks gelap, aksen gelap dipekatkan dengan teks putih
+    const light = onAcc(s.accent) !== '#ffffff';
+    r.style.setProperty('--bal-bg', light ? mixHex(s.accent, '#000000', 0.06) : readable(s.accent, '#ffffff', 4.5, '#000000', 0.18));
+    r.style.setProperty('--bal-fg', light ? '#243c47' : '#ffffff');
     r.style.setProperty('--fs', FONTS[s.fontSize] || 1);
     const meta = $('#meta-theme');
     if (meta) meta.setAttribute('content', dark ? '#182b35' : '#e9f0ef');
@@ -279,7 +293,7 @@
      ===================================================================== */
   const catIcon = (key, size = 38, inner = 21) => {
     const c = CATS[key] || CATS.lainnya;
-    return `<span class="ci" style="width:${size}px;height:${size}px;background:${c.bg};color:${c.type === 'in' ? 'var(--accent)' : c.fg}">${icon(c.icon, inner)}</span>`;
+    return `<span class="ci" style="width:${size}px;height:${size}px;background:${c.bg};color:${c.type === 'in' ? 'var(--ax)' : c.fg}">${icon(c.icon, inner)}</span>`;
   };
   const toggle = (on, k, label) => `<button class="tg ${on ? 'on' : ''}" role="switch" aria-checked="${on}" aria-label="${esc(label)}" data-action="toggle" data-k="${k}"></button>`;
 
@@ -397,7 +411,7 @@
           <div class="bar red"><i style="width:${pctSpent}%"></i></div>
         </div>
         <div class="card">
-          <div class="lb"><span style="color:var(--accent);display:grid">${icon('piggy-bank', 20)}</span>Sisa budget hari ini</div>
+          <div class="lb"><span style="color:var(--ax);display:grid">${icon('piggy-bank', 20)}</span>Sisa budget hari ini</div>
           <div class="num">${rp(left)}</div>
           <div class="bar"><i style="width:${pctLeft}%"></i></div>
         </div>
@@ -463,7 +477,7 @@
         <div class="ring-wrap">
           <svg viewBox="0 0 88 88" aria-hidden="true">
             <circle cx="44" cy="44" r="${R}" fill="none" stroke="var(--track)" stroke-width="8"/>
-            <circle cx="44" cy="44" r="${R}" fill="none" stroke="${ov ? 'var(--red)' : 'var(--accent)'}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${C * pr} ${C}" transform="rotate(-90 44 44)"/>
+            <circle cx="44" cy="44" r="${R}" fill="none" stroke="${ov ? 'var(--red)' : 'var(--ag)'}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${C * pr} ${C}" transform="rotate(-90 44 44)"/>
           </svg>
           <b style="${ov ? 'color:var(--red)' : ''}">${pc}%</b>
         </div>
@@ -594,7 +608,7 @@
         </div>
         <div class="stack pf-right">
           <div class="sumrow pf-sum">
-            <div class="card"><small>Saldo Saat Ini</small><b><span style="color:var(--accent);display:grid">${icon('wallet', 18)}</span>${rp(bal)}</b></div>
+            <div class="card"><small>Saldo Saat Ini</small><b><span style="color:var(--ax);display:grid">${icon('wallet', 18)}</span>${rp(bal)}</b></div>
             <div class="card"><small>Total Transaksi</small><b>${state.tx.length} Transaksi</b></div>
             <div class="card pf-x"><small>Pemasukan Bulan Ini</small><b>${rp(sumType('in', mk))}</b></div>
             <div class="card pf-x"><small>Pengeluaran Bulan Ini</small><b>${rp(sumType('out', mk))}</b></div>
@@ -659,7 +673,7 @@
       ${backHdr('Pengaturan Notifikasi')}
       <div class="card"><div class="master"><b>Semua Notifikasi</b>${toggle(n.master, 'master', 'Semua Notifikasi')}</div></div>
       <div style="display:flex;flex-direction:column;gap:11px">
-        ${item('in', 'circle-arrow-down', 'var(--soft)', 'var(--accent)', 'Transaksi Masuk', 'Notifikasi saat ada pemasukan')}
+        ${item('in', 'circle-arrow-down', 'var(--soft)', 'var(--ax)', 'Transaksi Masuk', 'Notifikasi saat ada pemasukan')}
         ${item('out', 'circle-arrow-up', '#ffe7aa', '#e89a10', 'Transaksi Keluar', 'Notifikasi saat ada pengeluaran')}
         ${item('budget', 'wallet', '#ffe1e5', '#ef6571', 'Pengingat Budget', 'Saat budget hampir habis')}
         ${item('daily', 'bell', '#e3cff9', '#9252de', 'Pengingat Harian', 'Ingatkan untuk catat transaksi')}
@@ -682,7 +696,7 @@
       ${backHdr('Tema')}
       <div class="themes">${prev('light', 'Terang', !dark, !dark)}${prev('dark', 'Gelap', dark, dark)}</div>
       <section class="stack" style="gap:16px"><h2 class="lbl-t">Warna Aksen</h2>
-        <div class="acc">${ACCENTS.map((c) => `<button style="background:${c}" data-action="accent" data-v="${c}" aria-label="Warna ${c}" aria-pressed="${s.accent === c}">${s.accent === c ? icon('check', 19) : ''}</button>`).join('')}</div>
+        <div class="acc">${ACCENTS.map((c) => `<button style="background:${c};color:${onAcc(c)}" data-action="accent" data-v="${c}" aria-label="Warna ${c}" aria-pressed="${s.accent === c}">${s.accent === c ? icon('check', 19) : ''}</button>`).join('')}</div>
       </section>
       <section class="stack" style="gap:12px"><h2 class="lbl-t">Tampilan</h2>
         <div class="card pad12 grp">
@@ -724,7 +738,7 @@
       const c = CATS[t.cat] || CATS.lainnya;
       list.push({
         id: 'tx' + t.id, date: t.date, order: t.id, ic: t.type === 'in' ? 'circle-arrow-down' : 'circle-arrow-up',
-        bg: t.type === 'in' ? 'var(--soft)' : '#ffe7aa', fg: t.type === 'in' ? 'var(--accent)' : '#e89a10',
+        bg: t.type === 'in' ? 'var(--soft)' : '#ffe7aa', fg: t.type === 'in' ? 'var(--ax)' : '#e89a10',
         title: (t.type === 'in' ? 'Pemasukan ' : 'Pengeluaran ') + rp(t.amount),
         sub: esc(c.label) + (t.note ? ' · ' + esc(t.note) : '') + ' · ' + fmtDate(t.date)
       });
@@ -1389,7 +1403,7 @@
   function accountModal(mode) {
     if (session) {
       openModal(`<div class="mcard"><h2>Akun</h2>
-        <div class="acc-id"><span class="ci" style="width:44px;height:44px;background:var(--soft);color:var(--accent)">${icon('user-round', 22)}</span><div><b data-nt>${esc(session.user.email)}</b><small data-sync>${syncText()}</small></div></div>
+        <div class="acc-id"><span class="ci" style="width:44px;height:44px;background:var(--soft);color:var(--ax)">${icon('user-round', 22)}</span><div><b data-nt>${esc(session.user.email)}</b><small data-sync>${syncText()}</small></div></div>
         <p>Datamu tersimpan di akun ini dan otomatis tersinkron ke perangkat lain yang masuk dengan akun yang sama.</p>
         <button class="primary" data-action="syncnow">Sinkronkan Sekarang</button>
         <button class="ghost" data-action="logout">Keluar</button>
@@ -1451,7 +1465,7 @@
     },
     back: () => { const r = route().name; if (r === 'tambah') go('keuangan'); else if (r === 'tema' || r === 'notifpref' || r === 'pengaturan') go('profil'); else if (history.length > 1) history.back(); else go('home'); },
     fab: () => openModal(`<div class="mcard"><h2>Tambah Transaksi</h2>
-      <button class="tt in" data-action="addtype" data-v="in"><span class="ci" style="background:var(--soft);color:var(--accent)">${icon('circle-arrow-down', 21)}</span><span class="d"><b>Pemasukan</b><small>Catat uang yang kamu terima</small></span><span class="chev" style="display:grid">${icon('chevron-right', 15)}</span></button>
+      <button class="tt in" data-action="addtype" data-v="in"><span class="ci" style="background:var(--soft);color:var(--ax)">${icon('circle-arrow-down', 21)}</span><span class="d"><b>Pemasukan</b><small>Catat uang yang kamu terima</small></span><span class="chev" style="display:grid">${icon('chevron-right', 15)}</span></button>
       <button class="tt out" data-action="addtype" data-v="out"><span class="ci" style="background:var(--red-soft);color:var(--red)">${icon('circle-arrow-up', 21)}</span><span class="d"><b>Pengeluaran</b><small>Catat uang yang kamu keluarkan</small></span><span class="chev" style="display:grid">${icon('chevron-right', 15)}</span></button></div>`, true),
     addtype: (el) => { ui.form = null; closeModal(); go('tambah/' + el.dataset.v); },
     close: () => closeModal(),
