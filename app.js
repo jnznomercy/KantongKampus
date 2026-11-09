@@ -397,11 +397,11 @@
       <div class="cols wide-left">
       <section class="balance" aria-label="Saldo">
         <div class="top"><span>Saldo Saat Ini</span><button data-action="hide" aria-label="${hide ? 'Tampilkan' : 'Sembunyikan'} saldo">${icon(hide ? 'eye-off' : 'eye', 18)}</button></div>
-        <div class="big">${hide ? 'Rp ••••••' : rp(bal)}</div>
+        <div class="big"${hide ? '' : ` data-cu="${bal}"`}>${hide ? 'Rp ••••••' : rp(bal)}</div>
         <hr>
         <div class="bsum">
-          <div class="bs"><span class="o in">${icon('arrow-up', 20)}</span><div class="bv"><b>${hide ? 'Rp ••••' : rp(inc)}</b><small>Pemasukan bulan ini</small></div></div>
-          <div class="bs"><span class="o out">${icon('arrow-down', 20)}</span><div class="bv"><b>${hide ? 'Rp ••••' : rp(out)}</b><small>Pengeluaran bulan ini</small></div></div>
+          <div class="bs"><span class="o in">${icon('arrow-up', 20)}</span><div class="bv"><b${hide ? '' : ` data-cu="${inc}"`}>${hide ? 'Rp ••••' : rp(inc)}</b><small>Pemasukan bulan ini</small></div></div>
+          <div class="bs"><span class="o out">${icon('arrow-down', 20)}</span><div class="bv"><b${hide ? '' : ` data-cu="${out}"`}>${hide ? 'Rp ••••' : rp(out)}</b><small>Pengeluaran bulan ini</small></div></div>
         </div>
       </section>
       <div class="daily">
@@ -565,7 +565,7 @@
         <div class="donut-row">
           <div class="donut">
             <svg viewBox="0 0 165 165" role="img" aria-label="Diagram pengeluaran per kategori"><circle cx="82.5" cy="82.5" r="${R}" fill="none" stroke="var(--track)" stroke-width="27"/><g transform="rotate(-90 82.5 82.5)">${segs}</g></svg>
-            <div><small>Total</small><b>${rp(total)}</b></div>
+            <div><small>Total</small><b data-cu="${total}">${rp(total)}</b></div>
           </div>
           <div class="legend">${legend}</div>
         </div>
@@ -778,23 +778,22 @@
   const NAV_ORDER = ['home', 'keuangan', 'statistik', 'profil'];
   let lastNav = -1;
   const reduceMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  // angka saldo "berhitung" naik saat membuka Home
+  // angka bertanda data-cu "berhitung" naik: saldo, pemasukan, pengeluaran (Home) dan total donat (Statistik)
   function countUp() {
-    const el = $('.balance .big');
-    if (!el || reduceMotion()) return;
-    const txt = el.textContent;
-    if (txt.indexOf('•') >= 0) return;
-    const sign = /-/.test(txt) ? -1 : 1, n = Number(txt.replace(/\D/g, ''));
-    if (!n) return;
-    const t0 = performance.now(), D = 700;
-    const step = (t) => {
-      if (!el.isConnected) return;
-      const k = Math.min(1, (t - t0) / D), e = 1 - Math.pow(1 - k, 3);
-      el.textContent = rp(sign * Math.round(n * (k >= 1 ? 1 : e)));
-      if (k < 1) requestAnimationFrame(step);
-    };
-    el.textContent = rp(0);
-    requestAnimationFrame(step);
+    if (reduceMotion()) return;
+    $$('[data-cu]').forEach((el, i) => {
+      const v = Number(el.dataset.cu);
+      if (!v) return;
+      const t0 = performance.now(), D = el.classList.contains('big') ? 700 : 850;
+      const step = (t) => {
+        if (!el.isConnected) return;
+        const k = Math.min(1, (t - t0) / D), e = 1 - Math.pow(1 - k, 3);
+        el.textContent = rp(Math.round(v * (k >= 1 ? 1 : e)));
+        if (k < 1) requestAnimationFrame(step);
+      };
+      el.textContent = rp(0);
+      requestAnimationFrame(step);
+    });
   }
   function render(keep) {
     const { name, arg } = route();
@@ -815,7 +814,7 @@
     $$('[data-nav="notifikasi"]').forEach((b) => b.classList.toggle('has-dot', hasUnread()));
     view.scrollTop = keep ? top : 0;
     bind(name);
-    if (!keep && name === 'home') countUp();
+    if (!keep && (name === 'home' || name === 'statistik')) countUp();
     document.title = 'KantongKampus';
   }
   function bind(name) {
@@ -1502,8 +1501,8 @@
     },
     'edit-monthly': () => promptModal({ title: 'Budget Bulanan', type: 'number', value: String(state.settings.monthlyBudget), placeholder: 'Contoh: 1500000', hint: 'Batas pengeluaran per bulan (Rp).', onSave: (v) => { state.settings.monthlyBudget = v; save(); render(true); toast('Budget bulanan diperbarui'); } }),
     'edit-daily': () => promptModal({ title: 'Budget Harian', type: 'number', value: String(state.settings.dailyBudget), placeholder: 'Contoh: 50000', hint: 'Batas pengeluaran per hari (Rp).', onSave: (v) => { state.settings.dailyBudget = v; save(); render(true); toast('Budget harian diperbarui'); } }),
-    statprev: () => { ui.statMonth = shiftMonth(ui.statMonth, -1); render(true); },
-    statnext: () => { if (ui.statMonth < curMonth()) { ui.statMonth = shiftMonth(ui.statMonth, 1); render(true); } },
+    statprev: () => { ui.statMonth = shiftMonth(ui.statMonth, -1); render(true); countUp(); },
+    statnext: () => { if (ui.statMonth < curMonth()) { ui.statMonth = shiftMonth(ui.statMonth, 1); render(true); countUp(); } },
     about: () => {
       openModal(`<div class="mcard"><h2>KantongKampus</h2><p>Versi 1.0.0<br>Catat dan kelola keuangan mahasiswa. Data tersimpan di perangkat ini dan bisa dipakai tanpa internet.</p>
         ${!isStandalone() && (deferredInstall || isAndroid()) ? `<button class="primary" data-action="install">${isAndroid() ? 'Unduh APK' : 'Pasang Aplikasi'}</button>` : ''}
