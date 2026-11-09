@@ -358,9 +358,16 @@ b,strong{font-weight:700}
   .greet h1{font-size:calc(30px * var(--fs))}
   .greet p{font-size:calc(14px * var(--fs));margin-top:6px}
   .balance{padding:28px;gap:20px;height:100%}
-  .balance .big{font-size:calc(40px * var(--fs))}
-  .bsum .bv b{font-size:calc(16px * var(--fs))}
-  .bsum small{font-size:calc(11px * var(--fs))}
+
+  .balance{container-type:inline-size}
+  .balance .big{font-size:calc(clamp(24px,8.5cqw,52px) * var(--fs))}
+  .bsum{gap:clamp(12px,5cqw,28px)}
+  .bsum .bs{gap:clamp(8px,3cqw,18px)}
+  .bsum .o{width:clamp(30px,9.5cqw,60px);height:clamp(30px,9.5cqw,60px)}
+  .bsum .o svg{width:clamp(17px,4.8cqw,30px);height:clamp(17px,4.8cqw,30px)}
+  .bsum .bv{gap:4px}
+  .bsum .bv b{font-size:calc(clamp(12px,4.9cqw,32px) * var(--fs))}
+  .bsum small{font-size:calc(clamp(10px,2.9cqw,16px) * var(--fs))}
   .daily{flex-direction:column;gap:16px}
   .daily .num{font-size:calc(22px * var(--fs))}
   .bell{top:2px}
