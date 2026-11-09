@@ -400,8 +400,8 @@
         <div class="big">${hide ? 'Rp ••••••' : rp(bal)}</div>
         <hr>
         <div class="bsum">
-          <div><div class="v"><span class="o in">${icon('arrow-up', 20)}</span>${hide ? 'Rp ••••' : rp(inc)}</div><small>Pemasukan bulan ini</small></div>
-          <div><div class="v"><span class="o out">${icon('arrow-down', 20)}</span>${hide ? 'Rp ••••' : rp(out)}</div><small>Pengeluaran bulan ini</small></div>
+          <div class="bs"><span class="o in">${icon('arrow-up', 20)}</span><div class="bv"><b>${hide ? 'Rp ••••' : rp(inc)}</b><small>Pemasukan bulan ini</small></div></div>
+          <div class="bs"><span class="o out">${icon('arrow-down', 20)}</span><div class="bv"><b>${hide ? 'Rp ••••' : rp(out)}</b><small>Pengeluaran bulan ini</small></div></div>
         </div>
       </section>
       <div class="daily">
