@@ -243,7 +243,7 @@
   const isStandalone = () => isNative() || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
   const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   // di Android (browser biasa) tombol pasang mengunduh APK; di iPhone dan desktop tetap cara pasang bawaan
-  const APK_URL = 'https://github.com/jnznomercy/KantongKampus/releases/download/v1.0.3/KantongKampus.apk'; // ganti nomor versi tiap ada rilis APK baru
+  const APK_URL = 'https://github.com/jnznomercy/KantongKampus/releases/latest/download/KantongKampus.apk'; // selalu mengarah ke rilis APK terbaru
   const isAndroid = () => /android/i.test(navigator.userAgent || '') && !isNative();
   const installBanner = () => (isStandalone() || installDismissed || !(isAndroid() || deferredInstall || isIOS())) ? '' : `
       <div class="install">
