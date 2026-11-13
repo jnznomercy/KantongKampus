@@ -1245,30 +1245,43 @@
     syncTimer = setTimeout(flush, 1500);
     setSync(syncState === 'syncing' ? 'syncing' : 'idle');
   }
-  async function flush() {
-    if (!session || syncBusy || !isDirty()) return;
-    if (!navigator.onLine) { setSync('offline'); return; }
-    syncBusy = true; setSync('syncing');
-    const snap = snapshot(), stamp = state.updatedAt;
-    try { await push(snap); state.syncedAt = stamp; persist(); setSync('ok'); }
-    catch (e) { onSyncError(e); }
-    finally { syncBusy = false; if (session && isDirty() && syncState === 'ok') scheduleSync(); }
+  function flush() { if (session && isDirty()) syncNow(); }
+  // gabungkan data akun dengan data perangkat: transaksi digabung per item, pengaturan ikut yang terbaru
+  const sig = (s) => JSON.stringify([(s.tx || []).map((t) => t.id).sort(), Object.keys(s.deleted || {}).sort(), s.updatedAt || 0]);
+  function mergeData(rd) {
+    const rem = mergeState(rd || {});
+    const del = Object.assign({}, rem.deleted || {}, state.deleted || {});
+    const seen = new Set(), tx = [];
+    (state.tx || []).concat(rem.tx || []).forEach((t) => { if (del[t.id] === undefined && !seen.has(t.id)) { seen.add(t.id); tx.push(t); } });
+    const base = (rem.updatedAt || 0) > (state.updatedAt || 0) ? rem : state;
+    return { m: Object.assign({}, base, { tx, deleted: del, updatedAt: Math.max(rem.updatedAt || 0, state.updatedAt || 0) }), rem };
   }
-  // sinkron dua arah: yang terakhir diubah menang
+  function adopt(m) {
+    state = m; persist();
+    lang = state.settings.lang === 'en' ? 'en' : 'id';
+    applyTheme(); applyLang();
+    if (!ui.form && !modalCtx) render(true);
+  }
+  let overwrite = false;
+  // sinkron dua arah: transaksi digabung per item
   async function syncNow(manual) {
     if (!session || syncBusy) return;
     if (!navigator.onLine) { setSync('offline'); if (manual) toast('Tidak ada koneksi internet'); return; }
     syncBusy = true; setSync('syncing'); lastPull = Date.now();
     try {
       const remote = await pull();
-      const ru = remote ? Number((remote.data || {}).updatedAt || 0) : 0, lu = state.updatedAt || 0;
-      if (!remote || lu > ru) { const snap = snapshot(), stamp = state.updatedAt; await push(snap); state.syncedAt = stamp; persist(); }
-      else if (ru > lu) applyRemote(remote.data);
-      else { state.syncedAt = lu; persist(); }
+      if (!remote || overwrite) { const snap = snapshot(), stamp = state.updatedAt; await push(snap); overwrite = false; state.syncedAt = stamp; persist(); }
+      else {
+        const { m, rem } = mergeData(remote.data);
+        const toLocal = sig(m) !== sig(state), toRemote = sig(m) !== sig(rem);
+        if (toLocal) adopt(m);
+        if (toRemote) { const snap = snapshot(), stamp = state.updatedAt; await push(snap); state.syncedAt = stamp; persist(); }
+        else { state.syncedAt = state.updatedAt || 0; persist(); }
+      }
       setSync('ok');
       if (manual) toast('Sinkronisasi selesai');
     } catch (e) { onSyncError(e); if (manual && session) toast('Gagal menyinkronkan'); }
-    finally { syncBusy = false; }
+    finally { syncBusy = false; if (session && isDirty() && syncState === 'ok') scheduleSync(); }
   }
   function lockModal(html) {
     modalCtx = { lock: true };
@@ -1329,7 +1342,9 @@
         title: 'Pulihkan Data?', label: 'Pulihkan', danger: true,
         text: `File backup berisi ${d.tx.length} transaksi. Data saat ini akan diganti.${session ? ' Data di akunmu ikut diperbarui.' : ''}`,
         onYes: () => {
+          const gone = {}; state.tx.forEach((t) => { gone[t.id] = Date.now(); }); (d.tx || []).forEach((t) => { delete gone[t.id]; });
           applyRemote(d);
+          state.deleted = Object.assign({}, state.deleted || {}, gone); overwrite = true;
           delete state.syncedAt;
           save();
           toast('Data berhasil dipulihkan');
@@ -1443,7 +1458,9 @@
     });
   }
   window.addEventListener('online', () => syncNow());
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && session && Date.now() - lastPull > 20000) syncNow(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && session && Date.now() - lastPull > 5000) syncNow(); });
+  // tarik data terbaru otomatis selagi aplikasi terbuka (tidak saat sedang mengisi form)
+  setInterval(() => { if (session && !document.hidden && !syncBusy && !ui.form && !modalCtx) syncNow(); }, 15000);
 
   /* =====================================================================
      Aksi
@@ -1491,7 +1508,7 @@
       const t = state.tx.find((x) => x.id === Number(el.dataset.id));
       if (!t) return;
       const c = CATS[t.cat] || CATS.lainnya;
-      modalCtx = { onYes: () => { state.tx = state.tx.filter((x) => x.id !== t.id); save(); render(true); toast('Transaksi dihapus'); } };
+      modalCtx = { onYes: () => { state.tx = state.tx.filter((x) => x.id !== t.id); (state.deleted = state.deleted || {})[t.id] = Date.now(); save(); render(true); toast('Transaksi dihapus'); } };
       openModal(`<div class="mcard"><h2>${esc(c.label)}</h2>
         <div class="kv"><span>Jenis</span><b>${t.type === 'in' ? 'Pemasukan' : 'Pengeluaran'}</b></div>
         <div class="kv"><span>Nominal</span><b>${rp(t.amount)}</b></div>
@@ -1531,7 +1548,9 @@
     syncnow: () => syncNow(true),
     'use-remote': () => { const d = modalCtx && modalCtx.remote; unlockModal(); if (d) { applyRemote(d); toast('Data akun dimuat'); } askName(); },
     'use-local': async () => {
-      unlockModal(); syncBusy = true; setSync('syncing');
+      const rm = (modalCtx && modalCtx.remote) || {}; unlockModal(); syncBusy = true; setSync('syncing');
+      const mine = new Set(state.tx.map((t) => t.id)); state.deleted = state.deleted || {};
+      (rm.tx || []).forEach((t) => { if (!mine.has(t.id)) state.deleted[t.id] = Date.now(); });
       try { const snap = snapshot(), stamp = state.updatedAt; await push(snap); state.syncedAt = stamp; persist(); setSync('ok'); toast('Data tersimpan di akun'); }
       catch (e) { onSyncError(e); }
       syncBusy = false; render(true); askName();
