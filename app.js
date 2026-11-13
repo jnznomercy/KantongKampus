@@ -198,6 +198,7 @@
     state.updatedAt = Date.now();
     persist();
     scheduleSync();
+    rearmReminder();
   }
 
   /* =====================================================================
@@ -957,9 +958,35 @@
   function askPermission() {
     if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission().then(() => render(true));
   }
+  // di aplikasi Android: jadwalkan pengingat harian (jam 19.00, 7 hari ke depan) lewat notifikasi bawaan Android,
+  // jadi tetap muncul walau aplikasi tertutup. Dijadwalkan ulang tiap aplikasi dibuka / data berubah.
+  var remT;
+  function localNotif() { return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) || null; }
+  function rearmReminder() { clearTimeout(remT); remT = setTimeout(doRearm, 800); }
+  async function doRearm() {
+    const ln = localNotif();
+    if (!ln || !isNative()) return;
+    try {
+      await ln.cancel({ notifications: [0, 1, 2, 3, 4, 5, 6].map((i) => ({ id: 9001 + i })) });
+      const n = state.settings.notif;
+      if (!n.master || !n.daily) return;
+      let p = await ln.checkPermissions();
+      if (p.display === 'prompt' || p.display === 'prompt-with-rationale') p = await ln.requestPermissions();
+      if (p.display !== 'granted') return;
+      const now = new Date(), list = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i, 19, 0, 0);
+        if (d <= now) continue;
+        if (i === 0 && state.tx.some((t) => t.date === today())) continue;
+        list.push({ id: 9001 + i, title: tr('KantongKampus'), body: tr('Jangan lupa catat transaksi hari ini ya!'), schedule: { at: d, allowWhileIdle: true } });
+      }
+      if (list.length) await ln.schedule({ notifications: list });
+    } catch (e) { /* abaikan */ }
+  }
   function dailyReminder() {
     const n = state.settings.notif;
     if (!n.master || !n.daily) return;
+    if (isNative() && localNotif()) return;
     const now = new Date();
     if (now.getHours() < 19 || state.lastDaily === today()) return;
     if (state.tx.some((t) => t.date === today())) return;
@@ -968,7 +995,7 @@
     toast('Jangan lupa catat transaksi hari ini ya!');
     notify('KantongKampus', 'Jangan lupa catat transaksi hari ini ya!');
   }
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) dailyReminder(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { dailyReminder(); rearmReminder(); } });
 
   /* =====================================================================
      Bahasa (Indonesia / English)
@@ -1697,7 +1724,7 @@
   let seen = false;
   try { seen = sessionStorage.getItem('kk:splash') === '1'; sessionStorage.setItem('kk:splash', '1'); } catch (e) { /* abaikan */ }
   if (seen) splash.classList.add('hide');
-  else setTimeout(() => { splash.classList.add('hide'); askName(); dailyReminder(); }, 1400);
+  else setTimeout(() => { splash.classList.add('hide'); askName(); dailyReminder(); rearmReminder(); }, 1400);
   setTimeout(() => { if (splash.classList.contains('hide')) splash.style.display = 'none'; }, 2000);
-  if (seen) { askName(); dailyReminder(); }
+  if (seen) { askName(); dailyReminder(); rearmReminder(); }
 })();
